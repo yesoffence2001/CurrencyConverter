@@ -1,61 +1,42 @@
-//CONSTS AND VARS
-const DEFAULT_BASE_CURRENCY_CODE = 'USD';
+const select = document.querySelectorAll(".currency");
+const btn = document.getElementById("btn");
+const num = document.getElementById("num");
+const ans = document.getElementById("ans");
 
-//API Providers
-const ipdata = {
-    key: '074bb7ffe1fb62bb3e968d317be20b3d1c1c8c01cebb4745272a8893',
-    baseurl : 'https://api.ipdata.co',
-    currency: function(){
-        return `${this.baseurl}/currency?api-key=${this.key}`;
-    },
-};
+fetch("https://api.frankfurter.app/currencies")
+  .then((data) => data.json())
+  .then((data) => {
+    display(data);
+  });
 
-const currencyLayer = {
-    key : 'YpXbS5yzNbg0PuaVoK9G0h9SB611GqZP',
-    baseurl : 'https://api.apilayer.com',
-    convert : function(fromCurrencyCode, toCurrencyCode, amount){
-        return `${this.baseurl}/exchangerates_data/convert?to=${toCurrencyCode}&from=${fromCurrencyCode}&amount=${amount}&apikey=${this.key}`;
-    },
-    list : function(){
-        return `${this.baseurl}/exchangerates_data/symbols?apikey=${this.key}`
-    }
-};
-
-// Get Users Currency
-async function getUserCurrency(){
-    const res = await fetch(ipdata.currency());
-    const userCurrency = await res.json();
-
-    return userCurrency;
+function display(data) {
+  const entries = Object.entries(data);
+  for (var i = 0; i < entries.length; i++) {
+    select[0].innerHTML += `<option value="${entries[i][0]}">${entries[i][0]}</option>`;
+    select[1].innerHTML += `<option value="${entries[i][0]}">${entries[i][0]}</option>`;
+  }
 }
 
-//Get Currencies
-async function getCurrencies(){
-    const res = await fetch(currencyLayer.list());
-    const data = await res.json();
+btn.addEventListener("click", () => {
+  let currency1 = select[0].value;
+  let currency2 = select[1].value;
+  let value = num.value;
 
-    return data.symbols;
-}
+  if (currency1 != currency2) {
+    convert(currency1, currency2, value);
+  } else {
+    alert("Choose Diffrent Currency");
+  }
+});
 
-//Get Exchange Rate
-async function getExchangeRate(fromCurrencyCode, toCurrencyCode){
-   const amount = 1;
-   const res = await fetch(currencyLayer.convert(fromCurrencyCode, toCurrencyCode, amount));
-   const data = await res.json();
-   return data.result;
+function convert(currency1, currency2, value) {
+  const host = "api.frankfurter.app";
+  fetch(
+    `https://${host}/latest?amount=${value}&from=${currency1}&to=${currency2}`
+  )
+    .then((val) => val.json())
+    .then((val) => {
+      console.log(Object.values(val.rates)[0]);
+      ans.value = Object.values(val.rates)[0];
+    });
 }
-getExchangeRate('USD','GBP');
-
-//RenderExchangeRate
-function renderExchangeRate(fromCurrencyCode, toCurrencyCode){
-    console.log(fromCurrencyCode, toCurrencyCode);
-}
-// INTI App
-async function inti(){
-    const userCurrency = await getExchangeRate();
-    //Render Exchange Rate
-    renderExchangeRate(DEFAULT_BASE_CURRENCY_CODE, userCurrency.code);
-    //Render Select Options
-    //Convert 
-}
-inti();
